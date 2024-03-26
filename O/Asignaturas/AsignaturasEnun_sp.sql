@@ -11,12 +11,37 @@ create table asignaturas(
 
 create or replace procedure insertaAsignatura(
   v_idAsignatura integer, v_nombreAsig varchar, v_titulacion varchar, v_ncreditos integer) is
+  
+    same_id exception;
+    same_name exception;
+    
+    PRAGMA EXCEPTION_INIT (same_id, -20000);
+    PRAGMA EXCEPTION_INIT (same_name, -20001);
+    
+    m_idAsignatura asignaturas.idAsignatura%type;
+    
 
 begin
-  null; --El null es para que compile. Sustituyelo por la implementación de la tansacción.
+    insert into asignaturas values (v_idAsignatura, v_nombreAsig, v_titulacion, v_ncreditos);
+    
+    if SQL%ROWCOUNT=1 then
+        commit;
+    else 
+        rollback;
+    end if;
+    
+exception
+    when others then
+        if SQLCODE=-0001 AND SQLERRM like '%DUP_VAL_ON_INDEX%' then
+            select idAsignatura into m_idAsignatura
+            from asignaturas
+            where idAsignatura = v_idAsignatura;
+            if SQL%ROWCOUNT > 0 then
+                raise_application_error(-20000,'La asignatura con id='||v_idAsignatura||' esta repetida en la titulacion '||v_titulacion||'.');
+            end if;
+    end if;
 end;
 /
-
 
 --juego de pruebas automáticas
 create or replace procedure test_asignaturas is
