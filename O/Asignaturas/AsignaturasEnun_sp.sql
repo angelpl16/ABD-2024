@@ -19,6 +19,7 @@ create or replace procedure insertaAsignatura(
     PRAGMA EXCEPTION_INIT (same_name, -20001);
     
     m_idAsignatura asignaturas.idAsignatura%type;
+    m_nombre asignaturas.nombre%type;
     
 
 begin
@@ -35,9 +36,16 @@ exception
         if SQLCODE=-0001 AND SQLERRM like '%DUP_VAL_ON_INDEX%' then
             select idAsignatura into m_idAsignatura
             from asignaturas
-            where idAsignatura = v_idAsignatura;
+            where idAsignatura = v_idAsignatura and titulacion = v_titulacion;
             if SQL%ROWCOUNT > 0 then
                 raise_application_error(-20000,'La asignatura con id='||v_idAsignatura||' esta repetida en la titulacion '||v_titulacion||'.');
+            else 
+                select nombre into m_nombre
+                from asignaturas
+                where nombre = v_nombreAsig and titulacion = v_titulacion;
+                if SQL%ROWCOUNT > 0 then
+                raise_application_error(-20001,'La asignatura con nombre='||v_idAsignatura||' esta repetida en la titulacion '||v_titulacion||'.');
+                end if;
             end if;
     end if;
 end;
