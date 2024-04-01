@@ -18,7 +18,7 @@ create or replace procedure insertaAsignatura(
     PRAGMA EXCEPTION_INIT (same_id, -20000);
     PRAGMA EXCEPTION_INIT (same_name, -20001);
     
-    m_idAsignatura integer;    
+    msg_error VARCHAR(255);    
 
 begin
     insert into asignaturas values (v_idAsignatura, v_nombreAsig, v_titulacion, v_ncreditos);
@@ -32,22 +32,10 @@ begin
 exception
     when others then
         if SQLCODE=-0001 then           
-            
-            --Buscamos si hay alguna ebtrada que repita los campos idAsignatura y titulacion en una misma linea
-            select count (idAsignatura) into m_idAsignatura
-            from asignaturas
-            where (idAsignatura = v_idAsignatura and titulacion = v_titulacion);
-            
-            --En caso de encontrarlo, el valor de m_idAsignatura tendrá valor 1 y salta la excepcion de que se repiten idAsignatura y titulacion.
-            if m_idAsignatura = 0 then
-                raise_application_error(-20001,'La asignatura con nombre='||v_nombreAsig||' esta repetida enla titulacion '||v_titulacion||'.');
-                
-            --En caso de que m_idAsignatura sea 0, significa que la excepcion no ha saltado porque haya idAsignatura y titulacion repetidos, por lo que tiene que ser por descarte la otra opcion.    
-            else
-                raise_application_error(-20000,'La asignatura con idAsignatura='||v_idAsignatura||' esta repetida en la titulacion '||v_titulacion||'.');
-            end if;
-            
-        end if;
+            msg_error := SQLERRM;
+            --DBMS_OUTPUT.put_line('Mensaje');
+            --DBMS_OUTPUT.put_line(msg_error);
+        end if;    
 end;
 /
 
