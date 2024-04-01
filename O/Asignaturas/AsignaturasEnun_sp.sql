@@ -42,7 +42,7 @@ exception
             if m_idAsignatura = 0 then
                 raise_application_error(-20001,'La asignatura con nombre='||v_nombreAsig||' esta repetida enla titulacion '||v_titulacion||'.');
                 
-            --En caso de que m_idAsignatura sea 0, significa que la excepcion no ha saltado porque haya idAsignatura y titulacion repetidos, por lo que tiene que ser por descarte la otra opcion.    
+            --En caso de que m_idAsignatura no sea 0, significa que la excepcion no ha saltado porque haya idAsignatura y titulacion repetidos, por lo que tiene que ser por descarte la otra opcion.    
             else
                 raise_application_error(-20000,'La asignatura con idAsignatura='||v_idAsignatura||' esta repetida en la titulacion '||v_titulacion||'.');
             end if;

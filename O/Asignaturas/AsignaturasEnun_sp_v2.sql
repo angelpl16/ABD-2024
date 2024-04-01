@@ -18,7 +18,8 @@ create or replace procedure insertaAsignatura(
     PRAGMA EXCEPTION_INIT (same_id, -20000);
     PRAGMA EXCEPTION_INIT (same_name, -20001);
     
-    msg_error VARCHAR(255);    
+    msg_error VARCHAR(255);
+    contains_pk INTEGER;
 
 begin
     insert into asignaturas values (v_idAsignatura, v_nombreAsig, v_titulacion, v_ncreditos);
@@ -33,8 +34,18 @@ exception
     when others then
         if SQLCODE=-0001 then           
             msg_error := SQLERRM;
-            --DBMS_OUTPUT.put_line('Mensaje');
-            --DBMS_OUTPUT.put_line(msg_error);
+            --La funcion instr devuelve la posicion de comienzo de la subcadena (derecha) en la cadena (izquierda), en caso de no haber coincidencias el valor devuelto es 0.
+            --El valor obtenido se almacena en la variable contains_pk.
+            select instr(msg_error,'PK_ASIGNATURAS') into contains_pk
+            from dual;
+            --En caso de que no haya coincidencias con 'PK_ASIGNATURAS' supondremos que el error obtenido es el unique.
+            if contains_pk = 0 then
+                raise_application_error(-20001,'La asignatura con nombre='||v_nombreAsig||' esta repetida enla titulacion '||v_titulacion||'.');
+                
+            --En caso de que no entre en el error del unique es que hay coincidencias y el error es el de la PK.    
+            else
+                raise_application_error(-20000,'La asignatura con idAsignatura='||v_idAsignatura||' esta repetida en la titulacion '||v_titulacion||'.');
+            end if;
         end if;    
 end;
 /
