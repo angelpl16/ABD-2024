@@ -81,8 +81,27 @@ commit;
 
 create or replace procedure crearViaje( m_idRecorrido int, m_idAutocar int, m_fecha date, m_conductor varchar) is
 
+    --Inicializacion de las excepciones
+    recorrido_inexistente exception;
+    
+    PRAGMA EXCEPTION_INIT (recorrido_inexistente,-20001);
+    --Inicializacion de las variables empleadas
+    existeRecorrido boolean := false;
+    
 begin
-    null; -- Retira el null y rellena el procedimiento
+    -- En primer lugar comprobamos si el recorrido existe.
+    -- Supondremos que el recorrido existe si la referencia pasada existe en la tabla recorridos
+    select idRecorrido
+    from recorridos
+    where idRecorrido = m_idRecorrido;
+    
+    existeRecorrido:=true;
+    
+exception
+    when no_data_found then
+        if existeRecorrido = false then
+            raise_application_error(-20001,'El recorrido con id ' ||m_idRecorrido|| ' ya existe');
+        end if;
 end;
 /
 
@@ -151,20 +170,20 @@ begin
   --Caso 4: Crea un viaje OK
   begin
     crearViaje(1, 1, trunc(current_date)+3, 'Pedrito');
-    dbms_output.put_line('Parece OK Crea un viaje válido');
+    dbms_output.put_line('Parece OK Crea un viaje vï¿½lido');
   exception
     when others then
-        dbms_output.put_line('MAL Crea un viaje válido: '||sqlerrm);
+        dbms_output.put_line('MAL Crea un viaje vï¿½lido: '||sqlerrm);
   end;
   
   
   --Caso 5: Crea un viaje OK con autcar sin modelo
   begin
     crearViaje(1, 4, trunc(current_date)+4, 'Jorgito');
-    dbms_output.put_line('Parece OK Crea un viaje válido sin modelo');
+    dbms_output.put_line('Parece OK Crea un viaje vï¿½lido sin modelo');
   exception
     when others then
-        dbms_output.put_line('MAL Crea un viaje válido sin modelo: '||sqlerrm);
+        dbms_output.put_line('MAL Crea un viaje vï¿½lido sin modelo: '||sqlerrm);
   end;
   
   
@@ -183,7 +202,7 @@ begin
     FROM viajes;
     
     if varContenidoReal=varContenidoEsperado then
-      dbms_output.put_line('OK: Sí que modifica bien la BD.'); 
+      dbms_output.put_line('OK: Sï¿½ que modifica bien la BD.'); 
     else
       dbms_output.put_line('Mal no modifica bien la BD.'); 
       dbms_output.put_line('Contenido real:     '||varContenidoReal); 
