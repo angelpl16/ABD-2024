@@ -83,25 +83,34 @@ create or replace procedure crearViaje( m_idRecorrido int, m_idAutocar int, m_fe
 
     --Inicializacion de las excepciones
     recorrido_inexistente exception;
+    autocar_inexistente exception;
     
     PRAGMA EXCEPTION_INIT (recorrido_inexistente,-20001);
-    --Inicializacion de las variables empleadas
-    existeRecorrido boolean := false;
+    PRAGMA EXCEPTION_INIT (autocar_inexistente,-20002);
+    
     
 begin
-    -- En primer lugar comprobamos si el recorrido existe.
-    -- Supondremos que el recorrido existe si la referencia pasada existe en la tabla recorridos
-    select idRecorrido
-    from recorridos
-    where idRecorrido = m_idRecorrido;
+    begin
+        -- En primer lugar comprobamos si el recorrido existe.
+        -- Supondremos que el recorrido existe si la referencia pasada existe en la tabla recorridos
+        select idRecorrido
+        from recorridos
+        where idRecorrido = m_idRecorrido;
+
+    exception
+        when no_data_found then
+            raise_application_error(-20001,'El recorrido no existe');
+    end;
     
-    existeRecorrido:=true;
-    
-exception
-    when no_data_found then
-        if existeRecorrido = false then
-            raise_application_error(-20001,'El recorrido con id ' ||m_idRecorrido|| ' ya existe');
-        end if;
+    begin
+        --No existiran autocares cuando no exista una entrada en la tabla Autocares con el correspondiente id
+        select idAutocar
+        from autocares
+        where idAutocar = m_idAutocar;
+    exception
+        when no_data_found then
+            raise_application_error(-20002,'El autocar no existe');
+    end;
 end;
 /
 
