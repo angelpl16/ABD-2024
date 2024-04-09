@@ -72,7 +72,7 @@ values (seq_viajes.nextval, 1, 1, trunc(current_date)+1, 38, 'Javier');
 insert into viajes (idViaje, idAutocar, idRecorrido, fecha, nPlazasLibres,  Conductor)
 values (seq_viajes.nextval, 1, 1, trunc(current_date)+7, 10, 'Maria');
 insert into viajes (idViaje, idAutocar, idRecorrido, fecha, nPlazasLibres,  Conductor)
-values(seq_viajes.nextval, 2, 4, trunc(current_date)+7, 40, 'Ana');
+values (seq_viajes.nextval, 2, 4, trunc(current_date)+7, 40, 'Ana');
 
 
 commit;
@@ -84,16 +84,25 @@ create or replace procedure crearViaje( m_idRecorrido int, m_idAutocar int, m_fe
     --Inicializacion de las excepciones
     recorrido_inexistente exception;
     autocar_inexistente exception;
+    autocar_ocupado exception;
+    viaje_duplicado exception;
     
     PRAGMA EXCEPTION_INIT (recorrido_inexistente,-20001);
     PRAGMA EXCEPTION_INIT (autocar_inexistente,-20002);
+    PRAGMA EXCEPTION_INIT (autocar_ocupado,-20003);
+    PRAGMA EXCEPTION_INIT (viaje_duplicado,-20004);
     
+    --Iniciacion de variables
+    v_nPlazasLibres viajes.nPlazasLibres%type;
+    v_idRecorrido recorridos.idRecorrido%type;
+    v_idAutocar autocares.idAutocar%type;
+    num_viaje integer;
     
 begin
     begin
         -- En primer lugar comprobamos si el recorrido existe.
         -- Supondremos que el recorrido existe si la referencia pasada existe en la tabla recorridos
-        select idRecorrido
+        select idRecorrido into v_idRecorrido
         from recorridos
         where idRecorrido = m_idRecorrido;
 
@@ -104,13 +113,33 @@ begin
     
     begin
         --No existiran autocares cuando no exista una entrada en la tabla Autocares con el correspondiente id
-        select idAutocar
+        select idAutocar into v_idAutocar
         from autocares
         where idAutocar = m_idAutocar;
     exception
         when no_data_found then
             raise_application_error(-20002,'El autocar no existe');
     end;
+    
+    select count(idViaje) into num_viaje
+    from viajes
+    where idRecorrido = m_idRecorrido and fecha = m_fecha;
+    
+    
+    if num_viaje = 1 then
+        raise_application_error(-20004,'El viaje existe ya');
+    end if;
+    
+    select nPlazasLibres into v_nPlazasLibres
+    from viajes
+    where idRecorrido = m_idRecorrido and fecha = m_fecha
+    for update;
+    
+    if v_nPlazasLibres = 0 then
+        raise_application_error(-20003,'El autocar esta lleno');
+    end if;
+    
+    
 end;
 /
 
