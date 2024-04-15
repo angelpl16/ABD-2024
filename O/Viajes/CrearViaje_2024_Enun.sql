@@ -74,7 +74,6 @@ values (seq_viajes.nextval, 1, 1, trunc(current_date)+7, 10, 'Maria');
 insert into viajes (idViaje, idAutocar, idRecorrido, fecha, nPlazasLibres,  Conductor)
 values (seq_viajes.nextval, 2, 4, trunc(current_date)+7, 40, 'Ana');
 
-
 commit;
 --exit;
 
@@ -93,10 +92,11 @@ create or replace procedure crearViaje( m_idRecorrido int, m_idAutocar int, m_fe
     PRAGMA EXCEPTION_INIT (viaje_duplicado,-20004);
     
     --Iniciacion de variables
-    v_nPlazasLibres viajes.nPlazasLibres%type;
     v_idRecorrido recorridos.idRecorrido%type;
     v_idAutocar autocares.idAutocar%type;
     num_viaje integer;
+    count_ViajeBus integer;
+    numPlazas modelos.nplazas%type;
     
 begin
     begin
@@ -130,16 +130,38 @@ begin
         raise_application_error(-20004,'El viaje existe ya');
     end if;
     
-    select nPlazasLibres into v_nPlazasLibres
+    select count(idViaje) into count_ViajeBus
     from viajes
-    where idRecorrido = m_idRecorrido and fecha = m_fecha
-    for update;
+    where idAutocar = m_idAutocar and idRecorrido != m_idRecorrido;
     
-    if v_nPlazasLibres = 0 then
-        raise_application_error(-20003,'El autocar esta lleno');
+    if count_ViajeBus != 0 then
+        raise_application_error(-20003,'El autocar esta reservado para otro viaje');
     end if;
     
+    select nplazas into numPlazas
+    from modelos inner join autocares 
+    on modelos.idModelo = autocares.modelo
+    where autocares.idAutocar = m_idAutocar;
     
+    insert into viajes (idViaje, idAutocar, idRecorrido, fecha, nPlazasLibres, conductor) 
+    values (seq_viajes.nextVal, m_idAutocar, m_idRecorrido, m_fecha, numPlazas, m_conductor);
+    
+    if SQL%ROWCOUNT = 1 then
+        commit;
+    else
+        rollback;
+    end if;
+exception
+    when no_data_found then
+        numPlazas := 25;
+        insert into viajes (idViaje, idAutocar, idRecorrido, fecha, nPlazasLibres, conductor) 
+    values (seq_viajes.nextVal, m_idAutocar, m_idRecorrido, m_fecha, numPlazas, m_conductor);
+    
+    if SQL%ROWCOUNT = 1 then
+        commit;
+    else
+        rollback;
+    end if;
 end;
 /
 
