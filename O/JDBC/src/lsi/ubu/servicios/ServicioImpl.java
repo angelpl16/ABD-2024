@@ -51,25 +51,69 @@ public class ServicioImpl implements Servicio {
 
 		try {
 			//Comprobamos si el recorrido existe
-			ResultSet existeRecorrido
+			//Para saber si el recorrido existe comprobamos que haya al menos un recorrido que salga de la estacion a la hora indicada
+
+			ResultSet existeRecorrido;
 			
 			String conExisteRecorrido = "SELECT count(*) FROM recorridos WHERE estacionOrigen = ? and horaSalida = ?";
+			PreparedStatement stExisteRecorrido = con.prepareStatement(conExisteRecorrido);
 			
+			stExisteRecorrido.setString(1, origen);
+			stExisteRecorrido.setTimestamp(2, horaTimestamp);
+			
+			existeRecorrido = stExisteRecorrido.executeQuery();
+			
+			if (!existeRecorrido.next()) {
+				throw new CompraBilleteTrenException(2);
+			}
+						
 			//Comprobamos si en el viaje solicitado quedan billetes libres
+			//Si hay asientos libres la variable nPlazasLibres no será igual a 0
+			
 			ResultSet billetesLibres;
 			
-			String conBilletesLibres = "SELECT nPlazasLibres FROM viajes JOIN recorridos on viajes.idRecorrido = recorridos.idRecorrido WHERE viajes.fecha = ? and estacionOrigen = ? and estacionDestino = ?";
+			String conBilletesLibres = "SELECT nPlazasLibres, idViajes FROM viajes INNER JOIN recorridos on viajes.idRecorrido = recorridos.idRecorrido WHERE viajes.fecha = ? and estacionOrigen = ? and estacionDestino = ?";
 			PreparedStatement stBilletesLibres = con.prepareStatement(conBilletesLibres);
 			
 			stBilletesLibres.setDate(1, fechaSqlDate);
 			stBilletesLibres.setString(2, origen);
 			stBilletesLibres.setString(3, destino);
 			
+			billetesLibres = stBilletesLibres.executeQuery();
 			
-		} catch (CompraBilleteTrenException e) {
+			if (billetesLibres.getInt(0) == 0) {
+				throw new CompraBilleteTrenException(1);
+			}
+			
+			String insBilletes = "INSERT INTO tickets (idTicket, idViaje, fechaCompra, cantidad, precio) VALUES seq_tickets.nextval, ?, ?, ?, 10)";
+			PreparedStatement stBilletes = con.prepareStatement(insBilletes);
+			
+			stBilletes.setInt(1, billetesLibres.getInt(1));
+			stBilletes.setDate(2, fechaSqlDate);
+			stBilletes.setInt(3, nroPlazas);
+			
+			stBilletes.executeUpdate();
+			
+			
+			con.commit();
+			
+			stExisteRecorrido.close();
+			stBilletesLibres.close();
+			stBilletes.close();
+			
+		} catch (SQLException e) {
+			con.rollback();
+			
+			if (con != null) {
+				con.rollback();
+			}
+			
+			if (e instanceof CompraBilleteTrenException) {
+				throw (CompraBilleteTrenException) e;
+			}
 			
 		} finally {
-			
+			con.close();			
 		}
 	}
 

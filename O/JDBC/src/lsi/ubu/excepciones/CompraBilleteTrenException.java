@@ -27,10 +27,18 @@ public class CompraBilleteTrenException extends SQLException {
 	private String mensaje;
 
 	public CompraBilleteTrenException(int code) {
-		/*
-		 * A completar por el alumno
-		 */
-
+		codigo = code;
+		mensaje = null;
+		
+		switch (code) {
+		case NO_PLAZAS:
+			mensaje = "No hay plazas libres disponibles para el viaje seleccionado";
+			break;
+		case NO_EXISTE_VIAJE:
+			mensaje = "No existe un viaje con la informacion proporcionada";
+			break;
+		}
+		
 		LOGGER.debug(mensaje);
 
 		// Traza_de_pila
