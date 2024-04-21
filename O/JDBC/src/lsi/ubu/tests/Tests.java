@@ -34,7 +34,7 @@ public class Tests {
 		PreparedStatement st = null;
 		ResultSet rs = null;
 
-		// A completar por el alumno
+		
 	}
 
 	public void ejecutarTestsCompraBilletes() {
@@ -61,6 +61,7 @@ public class Tests {
 				LOGGER.info("Se da cuenta de que no existe el viaje OK");
 			}
 		}
+
 
 		// Prueba caso si existe pero no hay plazas
 		try {
@@ -122,4 +123,6 @@ public class Tests {
 			return null;
 		}
 	}
+	
+	
 }

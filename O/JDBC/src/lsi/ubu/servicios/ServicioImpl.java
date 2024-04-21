@@ -26,13 +26,15 @@ public class ServicioImpl implements Servicio {
 		java.sql.Timestamp horaTimestamp = new java.sql.Timestamp(hora.getTime());
 
 		Connection con = pool.getConnection();
-		/*try {
-			
-		} catch (CompraBilleteTrenException e) {
-			
-		} finally {
-			
-		}*/
+		/*
+		 * try {
+		 * 
+		 * } catch (CompraBilleteTrenException e) {
+		 * 
+		 * } finally {
+		 * 
+		 * }
+		 */
 
 	}
 
@@ -46,75 +48,125 @@ public class ServicioImpl implements Servicio {
 		java.sql.Timestamp horaTimestamp = new java.sql.Timestamp(hora.getTime());
 
 		Connection con = pool.getConnection();
-		/*PreparedStatement st = null;
-		ResultSet rs = null;*/
+		/*
+		 * PreparedStatement st = null; ResultSet rs = null;
+		 */
+
+		// Result Sets
+		ResultSet billetesLibres = null;
+		ResultSet existeRecorrido = null;
 
 		try {
-			//Comprobamos si el recorrido existe
-			//Para saber si el recorrido existe comprobamos que haya al menos un recorrido que salga de la estacion a la hora indicada
 
-			ResultSet existeRecorrido;
-			
-			String conExisteRecorrido = "SELECT count(*) FROM recorridos WHERE estacionOrigen = ? and horaSalida = ?";
-			PreparedStatement stExisteRecorrido = con.prepareStatement(conExisteRecorrido);
-			
-			stExisteRecorrido.setString(1, origen);
-			stExisteRecorrido.setTimestamp(2, horaTimestamp);
-			
-			existeRecorrido = stExisteRecorrido.executeQuery();
-			
-			if (!existeRecorrido.next()) {
-				throw new CompraBilleteTrenException(2);
-			}
-						
-			//Comprobamos si en el viaje solicitado quedan billetes libres
-			//Si hay asientos libres la variable nPlazasLibres no será igual a 0
-			
-			ResultSet billetesLibres;
-			
-			String conBilletesLibres = "SELECT nPlazasLibres, idViajes FROM viajes INNER JOIN recorridos on viajes.idRecorrido = recorridos.idRecorrido WHERE viajes.fecha = ? and estacionOrigen = ? and estacionDestino = ?";
+			// Obtenemos el id del viaje asociado al ticket
+			String conBilletesLibres = "SELECT idViajes FROM viajes INNER JOIN recorridos on viajes.idRecorrido = recorridos.idRecorrido WHERE viajes.fecha = ? and estacionOrigen = ? and estacionDestino = ?";
 			PreparedStatement stBilletesLibres = con.prepareStatement(conBilletesLibres);
-			
+
 			stBilletesLibres.setDate(1, fechaSqlDate);
 			stBilletesLibres.setString(2, origen);
 			stBilletesLibres.setString(3, destino);
-			
+
 			billetesLibres = stBilletesLibres.executeQuery();
-			
-			if (billetesLibres.getInt(0) == 0) {
-				throw new CompraBilleteTrenException(1);
-			}
-			
+
 			String insBilletes = "INSERT INTO tickets (idTicket, idViaje, fechaCompra, cantidad, precio) VALUES seq_tickets.nextval, ?, ?, ?, 10)";
 			PreparedStatement stBilletes = con.prepareStatement(insBilletes);
-			
+
 			stBilletes.setInt(1, billetesLibres.getInt(1));
 			stBilletes.setDate(2, fechaSqlDate);
 			stBilletes.setInt(3, nroPlazas);
-			
+
 			stBilletes.executeUpdate();
-			
-			
+
 			con.commit();
-			
-			stExisteRecorrido.close();
-			stBilletesLibres.close();
-			stBilletes.close();
-			
 		} catch (SQLException e) {
 			con.rollback();
 			
-			if (con != null) {
-				con.rollback();
-			}
+			String conExisteRecorrido = "SELECT * FROM recorridos WHERE estacionOrigen = ? and horaSalida = ?";
+			PreparedStatement stExisteRecorrido = con.prepareStatement(conExisteRecorrido);
+
+			stExisteRecorrido.setString(1, origen);
+			stExisteRecorrido.setTimestamp(2, horaTimestamp);
+
+			existeRecorrido = stExisteRecorrido.executeQuery();
 			
-			if (e instanceof CompraBilleteTrenException) {
-				throw (CompraBilleteTrenException) e;
+			if(existeRecorrido.next()) {
+				throw new CompraBilleteTrenException(1);
+			} else {
+				throw new CompraBilleteTrenException(2);
 			}
-			
+
 		} finally {
-			con.close();			
+			if (billetesLibres != null) {
+				billetesLibres.close();
+				existeRecorrido = null;
+			}
+
+			con.close();
 		}
+		// Toda la información inferior es como resultaría el programa con una
+		// programación con enfoque defensivo
+		/*
+		 * try { //Comprobamos si el recorrido existe //Para saber si el recorrido
+		 * existe comprobamos que haya al menos un recorrido que salga de la estacion a
+		 * la hora indicada
+		 * 
+		 * ResultSet existeRecorrido;
+		 * 
+		 * 
+		 * String conExisteRecorrido =
+		 * "SELECT count(*) FROM recorridos WHERE estacionOrigen = ? and horaSalida = ?"
+		 * ; PreparedStatement stExisteRecorrido =
+		 * con.prepareStatement(conExisteRecorrido);
+		 * 
+		 * stExisteRecorrido.setString(1, origen); stExisteRecorrido.setTimestamp(2,
+		 * horaTimestamp);
+		 * 
+		 * existeRecorrido = stExisteRecorrido.executeQuery();
+		 * 
+		 * if (!existeRecorrido.next()) { throw new CompraBilleteTrenException(2); }
+		 * 
+		 * //Comprobamos si en el viaje solicitado quedan billetes libres //Si hay
+		 * asientos libres la variable nPlazasLibres no será igual a 0
+		 * 
+		 * ResultSet billetesLibres;
+		 * 
+		 * String conBilletesLibres =
+		 * "SELECT nPlazasLibres, idViajes FROM viajes INNER JOIN recorridos on viajes.idRecorrido = recorridos.idRecorrido WHERE viajes.fecha = ? and estacionOrigen = ? and estacionDestino = ?"
+		 * ; PreparedStatement stBilletesLibres =
+		 * con.prepareStatement(conBilletesLibres);
+		 * 
+		 * stBilletesLibres.setDate(1, fechaSqlDate); stBilletesLibres.setString(2,
+		 * origen); stBilletesLibres.setString(3, destino);
+		 * 
+		 * billetesLibres = stBilletesLibres.executeQuery();
+		 * 
+		 * if (billetesLibres.getInt(0) == 0) { throw new CompraBilleteTrenException(1);
+		 * }
+		 * 
+		 * String insBilletes =
+		 * "INSERT INTO tickets (idTicket, idViaje, fechaCompra, cantidad, precio) VALUES seq_tickets.nextval, ?, ?, ?, 10)"
+		 * ; PreparedStatement stBilletes = con.prepareStatement(insBilletes);
+		 * 
+		 * stBilletes.setInt(1, billetesLibres.getInt(1)); stBilletes.setDate(2,
+		 * fechaSqlDate); stBilletes.setInt(3, nroPlazas);
+		 * 
+		 * stBilletes.executeUpdate();
+		 * 
+		 * 
+		 * con.commit();
+		 * 
+		 * stExisteRecorrido.close(); stBilletesLibres.close(); stBilletes.close();
+		 * 
+		 * } catch (SQLException e) { con.rollback();
+		 * 
+		 * if (con != null) { con.rollback(); }
+		 * 
+		 * if (e instanceof CompraBilleteTrenException) { throw
+		 * (CompraBilleteTrenException) e; }
+		 * 
+		 * } finally { con.close(); }
+		 */
+
 	}
 
 }
