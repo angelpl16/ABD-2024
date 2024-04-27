@@ -90,7 +90,7 @@ public class Tests {
 			st = con.prepareStatement(
 					" SELECT IDVIAJE||IDTREN||IDRECORRIDO||FECHA||NPLAZASLIBRES||REALIZADO||IDCONDUCTOR||IDTICKET||CANTIDAD||PRECIO "
 							+ " FROM VIAJES natural join tickets "
-							+ " where idticket=3 and trunc(fechacompra) = trunc(current_date) ");
+							+ " where idticket=3");
 			rs = st.executeQuery();
 
 			String resultadoReal = "";
@@ -99,8 +99,8 @@ public class Tests {
 			}
 
 			String resultadoEsperado = "11120/04/2225113550";
-			// LOGGER.info("R"+resultadoReal);
-			// LOGGER.info("E"+resultadoEsperado);
+			 LOGGER.info("R"+resultadoReal);
+			 LOGGER.info("E"+resultadoEsperado);
 			if (resultadoReal.equals(resultadoEsperado)) {
 				LOGGER.info("Compra ticket OK");
 			} else {
