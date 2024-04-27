@@ -33,8 +33,64 @@ public class Tests {
 		Connection con = null;
 		PreparedStatement st = null;
 		ResultSet rs = null;
-
 		
+		// Prueba caso no existe el viaje
+		try {
+			java.util.Date fecha = toDate("15/04/2010");
+			Time hora = Time.valueOf("12:00:00");
+			int nroPlazas = 3;
+			int idTicket = 1;
+			
+			servicio.anularBillete(hora, fecha, ORIGEN, DESTINO, nroPlazas, idTicket);
+			
+			LOGGER.info("NO se da cuenta de que no existe el viaje MAL\n");
+		} catch (SQLException e) {
+			if (e.getErrorCode() == CompraBilleteTrenException.NO_EXISTE_VIAJE) {
+				LOGGER.info("Se da cuenta de que no existe el viaje OK\n");
+			}
+		}
+		
+		// Prueba caso no existe ticket
+		try {
+			java.util.Date fecha = toDate("20/04/2022");
+			Time hora = Time.valueOf("8:30:00");
+			int nroPlazas = 10;
+			int idTicket = 5;
+			
+			servicio.anularBillete(hora, fecha, ORIGEN, DESTINO, nroPlazas, idTicket);
+			
+			LOGGER.info("NO se da cuenta de que no existe el ticket\n");
+		} catch (SQLException e) {
+			if (e.getMessage() == "No existe un viaje con ese ID\n") {
+				LOGGER.info("Detecta que no existe el ticket OK\n");
+			}
+			
+		}
+		
+		//Prueba caso existe ticket y viaje
+		try {
+			java.util.Date fecha = toDate("20/04/2022");
+			Time hora = Time.valueOf("8:30:00");
+			int nroPlazas = 5;
+			int idTicket = 1;
+			
+			servicio.anularBillete(hora, fecha, ORIGEN, DESTINO, nroPlazas, idTicket);			
+			
+			con = pool.getConnection();
+			st = con.prepareStatement(
+					" SELECT IDVIAJE||IDTREN||IDRECORRIDO||FECHA||NPLAZASLIBRES||REALIZADO||IDCONDUCTOR||IDTICKET||CANTIDAD||PRECIO "
+							+ " FROM VIAJES natural join tickets"
+							+ " where idticket = 1");
+			rs = st.executeQuery();
+			
+			if(!rs.next()) {
+				LOGGER.info("Se elimina correctamente la linea\nAnular Linea OK");
+			} else {
+				LOGGER.info("NO se elimina la linea correctamente\nAnular Linea MAL");
+			}
+		} catch (SQLException e) {
+			LOGGER.info("Error inesperado MAL");
+		}
 	}
 
 	public void ejecutarTestsCompraBilletes() {
@@ -62,7 +118,7 @@ public class Tests {
 			}
 		}
 
-
+		
 		// Prueba caso si existe pero no hay plazas
 		try {
 			java.util.Date fecha = toDate("20/04/2022");
@@ -89,8 +145,8 @@ public class Tests {
 			con = pool.getConnection();
 			st = con.prepareStatement(
 					" SELECT IDVIAJE||IDTREN||IDRECORRIDO||FECHA||NPLAZASLIBRES||REALIZADO||IDCONDUCTOR||IDTICKET||CANTIDAD||PRECIO "
-							+ " FROM VIAJES natural join tickets "
-							+ " where idticket=3");
+							+ " FROM VIAJES natural join tickets"
+							+ " where idticket=3 and trunc(fechacompra) = trunc(current_date)");
 			rs = st.executeQuery();
 
 			String resultadoReal = "";
@@ -99,8 +155,8 @@ public class Tests {
 			}
 
 			String resultadoEsperado = "11120/04/2225113550";
-			 LOGGER.info("R"+resultadoReal);
-			 LOGGER.info("E"+resultadoEsperado);
+		//	 LOGGER.info("R"+resultadoReal);
+		//	 LOGGER.info("E"+resultadoEsperado);
 			if (resultadoReal.equals(resultadoEsperado)) {
 				LOGGER.info("Compra ticket OK");
 			} else {
