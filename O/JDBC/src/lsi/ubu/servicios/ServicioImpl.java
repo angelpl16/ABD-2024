@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Time;
+import java.sql.Timestamp;
 import java.util.Date;
 
 import org.slf4j.Logger;
@@ -47,32 +48,46 @@ public class ServicioImpl implements Servicio {
 		java.sql.Date fechaSqlDate = new java.sql.Date(fecha.getTime());
 		java.sql.Timestamp horaTimestamp = new java.sql.Timestamp(hora.getTime());
 
+		long fechaLong = fechaSqlDate.getTime();
+		java.sql.Timestamp fechaTime = new java.sql.Timestamp(fechaLong);
+
+		long horaLong = horaTimestamp.getTime();
+
+		long fechaCompleta = horaLong + (fechaTime.getTime() - (fechaTime.getTime() % 100));
+
+		java.sql.Timestamp timeFinal = new java.sql.Timestamp(fechaCompleta);
+
 		Connection con = pool.getConnection();
 		/*
 		 * PreparedStatement st = null; ResultSet rs = null;
 		 */
 
+		boolean existeRecorridoBool =false;
 		// Result Sets
-		ResultSet billetesLibres = null;
 		ResultSet existeRecorrido = null;
 
 		try {
-
 			// Obtenemos el id del viaje asociado al ticket
-			String conBilletesLibres = "SELECT idViajes FROM viajes INNER JOIN recorridos on viajes.idRecorrido = recorridos.idRecorrido WHERE viajes.fecha = ? and estacionOrigen = ? and estacionDestino = ?";
+			String conBilletesLibres = "SELECT viajes.idViaje FROM viajes INNER JOIN recorridos on viajes.idRecorrido = recorridos.idRecorrido WHERE viajes.fecha = ? and estacionOrigen = ? and estacionDestino = ?";
 			PreparedStatement stBilletesLibres = con.prepareStatement(conBilletesLibres);
 
 			stBilletesLibres.setDate(1, fechaSqlDate);
 			stBilletesLibres.setString(2, origen);
 			stBilletesLibres.setString(3, destino);
 
-			billetesLibres = stBilletesLibres.executeQuery();
-
-			String insBilletes = "INSERT INTO tickets (idTicket, idViaje, fechaCompra, cantidad, precio) VALUES seq_tickets.nextval, ?, ?, ?, 10)";
+			existeRecorrido = stBilletesLibres.executeQuery();
+			if (existeRecorrido.next()) {
+				existeRecorridoBool = true;
+			}
+			else {
+				throw new SQLException();
+			}
+			String insBilletes = "INSERT INTO tickets (idTicket, idViaje, fechaCompra, cantidad, precio) VALUES (seq_tickets.nextval, ?, ?, ?, 50)";
 			PreparedStatement stBilletes = con.prepareStatement(insBilletes);
 
-			stBilletes.setInt(1, billetesLibres.getInt(1));
-			stBilletes.setDate(2, fechaSqlDate);
+			int idViaje = existeRecorrido.getInt(1);
+			stBilletes.setInt(1, idViaje);
+			stBilletes.setTimestamp(2, timeFinal);
 			stBilletes.setInt(3, nroPlazas);
 
 			stBilletes.executeUpdate();
@@ -80,24 +95,25 @@ public class ServicioImpl implements Servicio {
 			con.commit();
 		} catch (SQLException e) {
 			con.rollback();
-			
-			String conExisteRecorrido = "SELECT * FROM recorridos WHERE estacionOrigen = ? and horaSalida = ?";
+			System.out.println(e.getErrorCode() + e.getMessage());
+			/*String conExisteRecorrido = "SELECT * FROM viajes INNER JOIN recorridos on viajes.idRecorrido = recorridos.idRecorrido WHERE viajes.fecha = ? and estacionOrigen = ? and estacionDestino = ?";
 			PreparedStatement stExisteRecorrido = con.prepareStatement(conExisteRecorrido);
 
-			stExisteRecorrido.setString(1, origen);
-			stExisteRecorrido.setTimestamp(2, horaTimestamp);
+			stExisteRecorrido.setDate(1, fechaSqlDate);
+			stExisteRecorrido.setString(2, origen);
+			stExisteRecorrido.setString(3, destino);
 
-			existeRecorrido = stExisteRecorrido.executeQuery();
-			
-			if(existeRecorrido.next()) {
+			existeRecorrido = stExisteRecorrido.executeQuery();*/
+
+			if (existeRecorridoBool == true) {
 				throw new CompraBilleteTrenException(1);
 			} else {
 				throw new CompraBilleteTrenException(2);
 			}
 
 		} finally {
-			if (billetesLibres != null) {
-				billetesLibres.close();
+			if (existeRecorrido!= null) {
+				//billetesLibres.close();
 				existeRecorrido = null;
 			}
 
