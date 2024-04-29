@@ -62,58 +62,74 @@ public class ServicioImpl implements Servicio {
 		 * PreparedStatement st = null; ResultSet rs = null;
 		 */
 
-		boolean existeRecorridoBool = true;
+	//	boolean existeRecorridoBool = true;
 		// Result Sets
-		ResultSet existeRecorrido = null;
+		//ResultSet existeRecorrido = null;
 		ResultSet ticketsLibres = null;
+		
+		int idViaje = 0;
+		int ticketsDispo = 0;
 
 		try {
-			// Obtenemos el id del viaje asociado al ticket
-			String conBilletesLibres = "SELECT viajes.idViaje FROM viajes INNER JOIN recorridos on viajes.idRecorrido = recorridos.idRecorrido WHERE viajes.fecha = ? and estacionOrigen = ? and estacionDestino = ?";
-			PreparedStatement stBilletesLibres = con.prepareStatement(conBilletesLibres);
+//			// Obtenemos el id del viaje asociado al ticket
+//			String conBilletesLibres = "SELECT viajes.idViaje FROM viajes INNER JOIN recorridos on viajes.idRecorrido = recorridos.idRecorrido WHERE viajes.fecha = ? and estacionOrigen = ? and estacionDestino = ?";
+//			PreparedStatement stBilletesLibres = con.prepareStatement(conBilletesLibres);
+//
+//			stBilletesLibres.setDate(1, fechaSqlDate);
+//			stBilletesLibres.setString(2, origen);
+//			stBilletesLibres.setString(3, destino);
+//
+//			existeRecorrido = stBilletesLibres.executeQuery();
+//
+//			// En caso de que no exista el viaje lanzamos una excepcion.
+//			if (!existeRecorrido.next()) {
+//				existeRecorridoBool = false;
+//				throw new SQLException();
+//			}
 
-			stBilletesLibres.setDate(1, fechaSqlDate);
-			stBilletesLibres.setString(2, origen);
-			stBilletesLibres.setString(3, destino);
-
-			existeRecorrido = stBilletesLibres.executeQuery();
-
-			// En caso de que no exista el viaje lanzamos una excepcion.
-			if (!existeRecorrido.next()) {
-				existeRecorridoBool = false;
+			idViaje = obtenerViaje(fechaSqlDate, origen, destino, con);
+			
+			if (idViaje == -1) {
 				throw new SQLException();
 			}
-
-			int idViaje = existeRecorrido.getInt(1);
 
 			// Obtenemos el numero de billetes libres
-			String conPlazasLibres = "SELECT nPlazasLibres FROM viajes where idViaje = ?";
-			PreparedStatement stTicketsLibres = con.prepareStatement(conPlazasLibres);
-
-			stTicketsLibres.setInt(1, idViaje);
-
-			ticketsLibres = stTicketsLibres.executeQuery();
-			int ticketsDispo = 0;
-			if (ticketsLibres.next()) {
-				ticketsDispo = ticketsLibres.getInt(1);
-			}
-
-			if (ticketsDispo < nroPlazas) {
+//			String conPlazasLibres = "SELECT nPlazasLibres FROM viajes where idViaje = ?";
+//			PreparedStatement stTicketsLibres = con.prepareStatement(conPlazasLibres);
+//
+//			stTicketsLibres.setInt(1, idViaje);
+//
+//			ticketsLibres = stTicketsLibres.executeQuery();
+//			int ticketsDispo = 0;
+//			if (ticketsLibres.next()) {
+//				ticketsDispo = ticketsLibres.getInt(1);
+//			}
+//
+//			if (ticketsDispo < nroPlazas) {
+//				throw new SQLException();
+//			}
+			
+			ticketsDispo = obtenerPlazasLibres(idViaje, nroPlazas, con);
+			
+			if (ticketsDispo == -1) {
 				throw new SQLException();
 			}
-			
 
 			String insBilletes = "INSERT INTO tickets (idTicket, idViaje, fechaCompra, cantidad, precio) VALUES (seq_tickets.nextval, ?, ?, ?, 50)";
 			PreparedStatement stBilletes = con.prepareStatement(insBilletes);
-
-			// int idViaje = existeRecorrido.getInt(1);
+			
+			
+			Date fechaActual = new Date();
+			Timestamp actualDia = new Timestamp(fechaActual.getTime());
 			stBilletes.setInt(1, idViaje);
-			stBilletes.setTimestamp(2, timeFinal);
+			stBilletes.setTimestamp(2, actualDia);
 			stBilletes.setInt(3, nroPlazas);
 
 			stBilletes.executeUpdate();
 			
-			int libresFinal = ticketsDispo - nroPlazas;
+			int libresFinal = calculaTicketsLibres(ticketsDispo, nroPlazas);
+			
+			
 			
 			//System.out.println("\nLibres Final: "+libresFinal+"\n");
 			
@@ -127,27 +143,85 @@ public class ServicioImpl implements Servicio {
 
 			con.commit();
 		} catch (SQLException e) {
-			con.rollback();
-			if (existeRecorridoBool == true) {
-				throw new CompraBilleteTrenException(1);
-			} else {
+			
+			if (idViaje == -1) {
 				throw new CompraBilleteTrenException(2);
+			} else  if(ticketsDispo == -1){
+				throw new CompraBilleteTrenException(1);
 			}
 
 		} finally {
-			if (existeRecorrido != null) {
-				// billetesLibres.close();
-				existeRecorrido.close();
-				;
-			}
-			if (ticketsLibres != null) {
-				ticketsLibres.close();
-			}
+//			if (existeRecorrido != null) {
+//				// billetesLibres.close();
+//				existeRecorrido.close();
+//				;
+//			}
+//			if (ticketsLibres != null) {
+//				ticketsLibres.close();
+//			}
 
 			con.close();
 		}
 
 
+	}
+	
+	private int obtenerViaje(java.sql.Date fechaSqlDate, String origen, String destino, Connection con) throws SQLException {
+		ResultSet existeRecorrido = null;
+		int idViaje = 0;
+		try {
+			String conBilletesLibres = "SELECT viajes.idViaje FROM viajes INNER JOIN recorridos on viajes.idRecorrido = recorridos.idRecorrido WHERE viajes.fecha = ? and estacionOrigen = ? and estacionDestino = ?";
+			PreparedStatement stBilletesLibres = con.prepareStatement(conBilletesLibres);
+
+			stBilletesLibres.setDate(1, fechaSqlDate);
+			stBilletesLibres.setString(2, origen);
+			stBilletesLibres.setString(3, destino);
+
+			existeRecorrido = stBilletesLibres.executeQuery();
+			if (!existeRecorrido.next()) {
+				throw new SQLException();
+			}
+			idViaje = existeRecorrido.getInt(1);
+		} catch (SQLException e) {
+			con.rollback();
+			
+			idViaje = -1;
+			
+		} finally {
+			existeRecorrido.close();
+		}
+		
+		return idViaje;
+	}
+	
+	private int obtenerPlazasLibres(int idViaje, int nroPlazas, Connection con) throws SQLException{
+		ResultSet ticketsLibres = null;
+		int ticketsDispo = 0;
+		try {
+			String conPlazasLibres = "SELECT nPlazasLibres FROM viajes where idViaje = ?";
+			PreparedStatement stTicketsLibres = con.prepareStatement(conPlazasLibres);
+
+			stTicketsLibres.setInt(1, idViaje);
+
+			ticketsLibres = stTicketsLibres.executeQuery();
+			if (ticketsLibres.next()) {
+				ticketsDispo = ticketsLibres.getInt(1);
+			}
+
+			if (ticketsDispo < nroPlazas) {
+				throw new SQLException();
+			}
+		} catch (SQLException e) {
+			ticketsDispo = -1;
+		} finally {
+			ticketsLibres.close();
+		}
+		
+		return ticketsDispo;
+	}
+	
+	private int calculaTicketsLibres (int ticketsDispo, int nroPlazas) {
+		return ticketsDispo - nroPlazas;
 	}
 
 }

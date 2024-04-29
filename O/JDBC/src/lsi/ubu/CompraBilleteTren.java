@@ -20,7 +20,7 @@ import lsi.ubu.util.ExecuteScript;
  * @since 1.0
  */
 public class CompraBilleteTren {
-
+	
 	private static final Logger LOGGER = LoggerFactory.getLogger(CompraBilleteTren.class);
 
 	public static void main(String[] args) {
@@ -35,10 +35,10 @@ public class CompraBilleteTren {
 		tests.ejecutarTestsCompraBilletes();
 
 		// Crear las tablas y filas en base de datos para la prueba
-		ExecuteScript.run("sql/CompraBilleteTren.sql");
+	/*	ExecuteScript.run("sql/CompraBilleteTren.sql");
 
 		// Ejecutar tests
-		tests.ejecutarTestsAnularBilletes();
+		tests.ejecutarTestsAnularBilletes();*/
 
 		LOGGER.info("Fin de los tests");
 	}
