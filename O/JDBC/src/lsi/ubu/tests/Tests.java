@@ -33,60 +33,65 @@ public class Tests {
 		Connection con = null;
 		PreparedStatement st = null;
 		ResultSet rs = null;
-		
+
 		// Prueba caso no existe el viaje
 		try {
 			java.util.Date fecha = toDate("15/04/2010");
 			Time hora = Time.valueOf("12:00:00");
 			int nroPlazas = 3;
 			int idTicket = 1;
-			
+
 			servicio.anularBillete(hora, fecha, ORIGEN, DESTINO, nroPlazas, idTicket);
-			
-			LOGGER.info("NO se da cuenta de que no existe el viaje MAL\n");
+
+			LOGGER.info("NO se da cuenta de que no existe el viaje MAL");
 		} catch (SQLException e) {
 			if (e.getErrorCode() == CompraBilleteTrenException.NO_EXISTE_VIAJE) {
-				LOGGER.info("Se da cuenta de que no existe el viaje OK\n");
+				LOGGER.info("Se da cuenta de que no existe el viaje OK");
 			}
 		}
-		
+
 		// Prueba caso no existe ticket
+		//No se como relacionar la excepcion lanzada en la clase ServicioIMPL con esta son crear una tercera excepcion
 		try {
 			java.util.Date fecha = toDate("20/04/2022");
 			Time hora = Time.valueOf("8:30:00");
 			int nroPlazas = 10;
 			int idTicket = 5;
-			
+
 			servicio.anularBillete(hora, fecha, ORIGEN, DESTINO, nroPlazas, idTicket);
-			
-			LOGGER.info("NO se da cuenta de que no existe el ticket\n");
+
+			LOGGER.info("NO se da cuenta de que no existe el ticket");
 		} catch (SQLException e) {
-			if (e.getMessage() == "No existe un viaje con ese ID\n") {
-				LOGGER.info("Detecta que no existe el ticket OK\n");
+			if (e.getErrorCode() == 0) {
+				LOGGER.info("Detecta que no existe el ticket OK");
 			}
-			
+
 		}
-		
-		//Prueba caso existe ticket y viaje
+
+		// Prueba caso existe ticket y viaje
 		try {
 			java.util.Date fecha = toDate("20/04/2022");
 			Time hora = Time.valueOf("8:30:00");
-			int nroPlazas = 5;
+			int nroPlazas = 1;
 			int idTicket = 1;
-			
-			servicio.anularBillete(hora, fecha, ORIGEN, DESTINO, nroPlazas, idTicket);			
-			
+
+			servicio.anularBillete(hora, fecha, ORIGEN, DESTINO, nroPlazas, idTicket);
+
 			con = pool.getConnection();
-			st = con.prepareStatement(
-					" SELECT IDVIAJE||IDTREN||IDRECORRIDO||FECHA||NPLAZASLIBRES||REALIZADO||IDCONDUCTOR||IDTICKET||CANTIDAD||PRECIO "
-							+ " FROM VIAJES natural join tickets"
-							+ " where idticket = 1");
+			st = con.prepareStatement(" SELECT nPlazasLibres FROM viajes where idViaje = 1");
 			rs = st.executeQuery();
+
+			// Comprobar que se sumen los tickets eliminados
 			
-			if(!rs.next()) {
-				LOGGER.info("Se elimina correctamente la linea\nAnular Linea OK");
+			
+			if (rs.next()) {
+				if (rs.getInt(1) == 31) {
+					LOGGER.info("Se suman correctamente los viajes de los tickets OK");
+				} else {
+					LOGGER.info("NO se contabilizan los tickets MAL");
+				}
 			} else {
-				LOGGER.info("NO se elimina la linea correctamente\nAnular Linea MAL");
+				LOGGER.info("NO se detecta viaje MAL");
 			}
 		} catch (SQLException e) {
 			LOGGER.info("Error inesperado MAL");
@@ -118,7 +123,6 @@ public class Tests {
 			}
 		}
 
-		
 		// Prueba caso si existe pero no hay plazas
 		try {
 			java.util.Date fecha = toDate("20/04/2022");
@@ -155,8 +159,8 @@ public class Tests {
 			}
 
 			String resultadoEsperado = "11120/04/2225113550";
-		//	 LOGGER.info("R"+resultadoReal);
-		//	 LOGGER.info("E"+resultadoEsperado);
+			// LOGGER.info("R"+resultadoReal);
+			// LOGGER.info("E"+resultadoEsperado);
 			if (resultadoReal.equals(resultadoEsperado)) {
 				LOGGER.info("Compra ticket OK");
 			} else {
@@ -179,6 +183,5 @@ public class Tests {
 			return null;
 		}
 	}
-	
-	
+
 }

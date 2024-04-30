@@ -35,10 +35,10 @@ public class CompraBilleteTren {
 		tests.ejecutarTestsCompraBilletes();
 
 		// Crear las tablas y filas en base de datos para la prueba
-	/*	ExecuteScript.run("sql/CompraBilleteTren.sql");
+		ExecuteScript.run("sql/CompraBilleteTren.sql");
 
 		// Ejecutar tests
-		tests.ejecutarTestsAnularBilletes();*/
+		tests.ejecutarTestsAnularBilletes();
 
 		LOGGER.info("Fin de los tests");
 	}
