@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author <a href="mailto:jmaudes@ubu.es">Jes�s Maudes</a>
  * @author <a href="mailto:rmartico@ubu.es">Ra�l Marticorena</a>
+ * @author <a href="mailto:xpl1001@alu.ubu.es">Angel Palacios</a>
  * @version 1.0
  * @since 1.0
  */
@@ -24,7 +25,7 @@ public class CompraBilleteTrenException extends SQLException {
 	public static final int NO_EXISTE_VIAJE = 2;
 
 	private int codigo; // = -1;
-	private String mensaje;
+	private String mensaje; 
 
 	public CompraBilleteTrenException(int code) {
 		codigo = code;

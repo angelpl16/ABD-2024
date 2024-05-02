@@ -21,9 +21,16 @@ public class Tests {
 	/** Logger. */
 	private static final Logger LOGGER = LoggerFactory.getLogger(Tests.class);
 
+	
 	public static final String ORIGEN = "Burgos";
 	public static final String DESTINO = "Madrid";
 
+	/**
+	 * ejecutarTestAnularBilletes: Se configuran y ejecutan los test para comprobar si se anula correctamente el billete.
+	 * 
+	 * @author <a href="mailto:xpl1001@alu.ubu.es">Angel Palacios</a>
+	 * @version 1.0
+	 */
 	public void ejecutarTestsAnularBilletes() {
 
 		Servicio servicio = new ServicioImpl();
@@ -98,6 +105,12 @@ public class Tests {
 		}
 	}
 
+	/**
+	 * ejecutarTestCompraBilletes: Se configuran y ejecutan los test para probar la función de compra de billetes
+	 * 
+	 * @author Profesorado
+	 * @version 1.0
+	 */
 	public void ejecutarTestsCompraBilletes() {
 
 		Servicio servicio = new ServicioImpl();
@@ -172,6 +185,12 @@ public class Tests {
 		}
 	}
 
+	/**
+	 * toDate: Convierte uan cadena en formato fecha
+	 * 
+	 * @param miString Cadena que contiene la fecha
+	 * @return Fecha en el formato correcto
+	 */
 	private java.util.Date toDate(String miString) { // convierte una cadena en fecha
 		try {
 			SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy"); // Las M en mayusculas porque sino interpreta
