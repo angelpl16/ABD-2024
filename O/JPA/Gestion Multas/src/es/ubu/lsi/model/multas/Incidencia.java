@@ -1,46 +1,45 @@
 package es.ubu.lsi.model.multas;
-import java.security.Timestamp;
-import java.util.Date;
+
+import java.io.Serializable;
+
 
 import javax.persistence.*;
 
-import oracle.sql.CLOB;
+
 
 @Entity
+@NamedQuery(name="Incidencia.findAll", query="SELECT i FROM Incidencia i")
 @Table(name = "Incidencia")
-public class Incidencia {
+public class Incidencia implements Serializable {
 
-	@Id
-	@Column(name="fecha")
-	private Timestamp fecha;
+	private static final long serialVersionUID = 1L;
+
 	
-	@Column(name="nif", length = 10)
-	private CLOB nif;
+	@EmbeddedId
+	@AttributeOverrides({
+		@AttributeOverride(name = "nif",
+							column = @Column(name= "nif", length=10, nullable = false)),
+		@AttributeOverride(name = "fecha",
+							column=@Column(name = "fecha", length=7, nullable = false))
+	})
 	
-	@Column(name="anotacion")
+	private IncidenciaPK id;
+
+	@Column(name = "anotacion")
 	private String anotacion;
-	
-	@Column(name="idtipo")
+
+	// Se puede hacer {cascade en OneToOne (Añadir un tipo que no existia)
+	@OneToOne
+	@JoinColumn(name = "idtipo")
 	private int idTipo;
 	
+	//bi-directional many-to-one association to Conductor
+	@ManyToOne(fetch = FetchType.EAGER)
+	@JoinColumn(name="NIF", nullable = true, insertable = false, updatable = false)		
+	private Conductor conductor;
+
 	public Incidencia() {
-		
-	}
 
-	public Timestamp getFecha() {
-		return fecha;
-	}
-
-	public void setFecha(Timestamp fecha) {
-		this.fecha = fecha;
-	}
-
-	public CLOB getNif() {
-		return nif;
-	}
-
-	public void setNif(CLOB nif) {
-		this.nif = nif;
 	}
 
 	public String getAnotacion() {
@@ -59,11 +58,26 @@ public class Incidencia {
 		this.idTipo = idTipo;
 	}
 
+	public IncidenciaPK getId() {
+		return id;
+	}
+
+	public void setId(IncidenciaPK id) {
+		this.id = id;
+	}
+
+	public Conductor getConductor() {
+		return conductor;
+	}
+
+	public void setConductor(Conductor conductor) {
+		this.conductor = conductor;
+	}
+
 	@Override
 	public String toString() {
-		return "Incidencia [fecha=" + fecha + ", nif=" + nif + ", anotacion=" + anotacion + ", idTipo=" + idTipo + "]";
+		return "Incidencia [id=" + id + ", anotacion=" + anotacion + ", idTipo=" + idTipo + ", conductor=" + conductor
+				+ "]";
 	}
-	
-	
-	
+
 }

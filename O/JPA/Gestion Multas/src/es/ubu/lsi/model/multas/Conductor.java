@@ -1,10 +1,16 @@
 package es.ubu.lsi.model.multas;
 
+import java.io.Serializable;
+import java.util.Set;
+
 import javax.persistence.*;
 
 @Entity
+@NamedQuery(name="Conductor.findAll", query="SELECT c FROM Conductor c")
 @Table(name="Conductor")
-public class Conductor {
+public class Conductor implements Serializable{
+	private static final long serialVersionUID = 1L;
+
 	@Id
 	@Column(name = "nif", length = 10)
 	private String nif;
@@ -15,20 +21,19 @@ public class Conductor {
 	@Column(name = "apellido", length = 50)
 	private String apellido;
 	
-	@Column(name = "direccion", length = 100)
-	private String direccion;
-	
-	@Column(name = "cp", length = 5)
-	private int cp;
-	
-	@Column(name = "ciudad", length = 20)
-	private String Ciudad;
+	@Embedded
+	private Direccion direccion;
 	
 	@Column(name = "puntos", precision = 3, scale = 0)
 	private int puntos;
 	
-	@Column(name = "idauto", length = 3)
-	private String idAuto;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name="idAuto")
+	private Vehiculo vehiculo;
+	
+	@OneToMany(mappedBy = "conductor")
+	private Set<Incidencia> incidencias;
 	
 	public Conductor() {
 		
@@ -58,30 +63,6 @@ public class Conductor {
 		this.nombre = nombre;
 	}
 
-	public String getDireccion() {
-		return direccion;
-	}
-
-	public void setDireccion(String direccion) {
-		this.direccion = direccion;
-	}
-
-	public int getCp() {
-		return cp;
-	}
-
-	public void setCp(int cp) {
-		this.cp = cp;
-	}
-
-	public String getCiudad() {
-		return Ciudad;
-	}
-
-	public void setCiudad(String ciudad) {
-		Ciudad = ciudad;
-	}
-
 	public int getPuntos() {
 		return puntos;
 	}
@@ -90,18 +71,22 @@ public class Conductor {
 		this.puntos = puntos;
 	}
 
-	public String getIdAuto() {
-		return idAuto;
+	public Vehiculo getVehiculo() {
+		return vehiculo;
 	}
-
-	public void setIdAuto(String idAuto) {
-		this.idAuto = idAuto;
+	
+	public void setVehiculo(Vehiculo vehiculo) {
+		this.vehiculo = vehiculo;
+	}
+	
+	public Set<Incidencia> getIncidencias(){
+		return null;
 	}
 
 	@Override
 	public String toString() {
 		return "Conductor [nif=" + nif + ", nombre=" + nombre + ", apellido=" + apellido + ", direccion=" + direccion
-				+ ", cp=" + cp + ", Ciudad=" + Ciudad + ", puntos=" + puntos + ", idAuto=" + idAuto + "]";
+				+ ", puntos=" + puntos + ", vehiculo=" + vehiculo + "]";
 	}
 	
 	

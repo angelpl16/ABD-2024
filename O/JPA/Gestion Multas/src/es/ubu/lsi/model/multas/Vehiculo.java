@@ -1,11 +1,18 @@
 package es.ubu.lsi.model.multas;
 
+import java.io.Serializable;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 import javax.persistence.*;
 
 @Entity
+@NamedQuery(name="Vehiculo.findAll", query="SELECT v FROM Vehiculo v")
 @Table(name = "Vehiculo")
-public class Vehiculo {
+public class Vehiculo implements Serializable{
 	
+	private static final long serialVersionUID = 1L;
+
 	@Id
 	@Column(name="idauto", length = 3)
 	private String idAuto;
@@ -13,14 +20,12 @@ public class Vehiculo {
 	@Column(name="nombre", length = 50)
 	private String nombre;
 	
-	@Column(name="direccion", length = 100)
-	private String direccion;
+	@Embedded
+	private Direccion direccion;
 	
-	@Column(name="cp", length = 5)
-	private String cp;
-	
-	@Column(name="ciudad", length = 20)
-	private String ciudad;
+
+	@OneToMany(mappedBy = "vehiculo")
+	private Set<Conductor> conductores;
 	
 	public Vehiculo() {
 		
@@ -42,34 +47,23 @@ public class Vehiculo {
 		this.nombre = nombre;
 	}
 
-	public String getDireccion() {
+	public Set<Conductor> getConductores() {
+		return conductores;
+	}
+	
+
+	public Direccion getDireccion() {
 		return direccion;
 	}
 
-	public void setDireccion(String direccion) {
+	public void setDireccion(Direccion direccion) {
 		this.direccion = direccion;
-	}
-
-	public String getCp() {
-		return cp;
-	}
-
-	public void setCp(String cp) {
-		this.cp = cp;
-	}
-
-	public String getCiudad() {
-		return ciudad;
-	}
-
-	public void setCiudad(String ciudad) {
-		this.ciudad = ciudad;
 	}
 
 	@Override
 	public String toString() {
-		return "Vehiculo [idAuto=" + idAuto + ", nombre=" + nombre + ", direccion=" + direccion + ", cp=" + cp
-				+ ", ciudad=" + ciudad + "]";
+		return "Vehiculo [idAuto=" + idAuto + ", nombre=" + nombre + ", direccion=" + direccion + ", conductores="
+				+ conductores + "]";
 	}
 	
 	
