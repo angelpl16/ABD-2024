@@ -13,13 +13,13 @@ public class TipoIncidencia implements Serializable{
 
 	@Id
 	@Column(name="id")
-	private int id;
+	private long id;
 	
 	@Column(name="descripcion", length = 30)
 	private String descripcion;
 	
 	@Column(name="valor")
-	private int valor;
+	private long valor;
 	
 	@OneToMany(mappedBy="tipoincidencia")
 	private Set<Incidencia> incidencias;
@@ -29,11 +29,11 @@ public class TipoIncidencia implements Serializable{
 		
 	}
 
-	public int getId() {
+	public long getId() {
 		return id;
 	}
 
-	public void setId(int id) {
+	public void setId(long id) {
 		this.id = id;
 	}
 
@@ -45,11 +45,11 @@ public class TipoIncidencia implements Serializable{
 		this.descripcion = descripcion;
 	}
 
-	public int getValor() {
+	public long getValor() {
 		return valor;
 	}
 
-	public void setValor(int valor) {
+	public void setValor(long valor) {
 		this.valor = valor;
 	}
 	

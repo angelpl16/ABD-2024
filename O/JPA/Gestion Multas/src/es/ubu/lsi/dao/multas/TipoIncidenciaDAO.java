@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import es.ubu.lsi.dao.JpaDAO;
 import es.ubu.lsi.model.multas.TipoIncidencia;
 
-public class TipoIncidenciaDAO extends JpaDAO<TipoIncidencia, Integer> {
+public class TipoIncidenciaDAO extends JpaDAO<TipoIncidencia, Long> {
 
 	private static final Logger logger = LoggerFactory.getLogger(ConductorDAO.class);
 	

@@ -7,15 +7,15 @@ import javax.persistence.*;
 
 @Entity
 @NamedQuery(name="Vehiculo.findAll", query="SELECT v FROM Vehiculo v")
-//@NamedEntityGraph(
-//name = "InfoVehiculoGrafo",
-//attributeNodes = 
-//@NamedAttributeNode(value = "conductors", subgraph = "IncidenciasConductor"),
-//subgraphs = {
-//		@NamedSubgraph(name = "IncidenciasConductor", attributeNodes = @NamedAttributeNode(value = "incidencias", subgraph = "TipoIncidenciaIncidencia")),
-//		@NamedSubgraph(name = "TipoIncidenciaIncidencia", attributeNodes = @NamedAttributeNode("tipoincidencia"))
-//}
-//)
+@NamedEntityGraph(
+name = "InfoVehiculoGrafo",
+attributeNodes = 
+@NamedAttributeNode(value = "conductors", subgraph = "IncidenciasConductor"),
+subgraphs = {
+		@NamedSubgraph(name = "IncidenciasConductor", attributeNodes = @NamedAttributeNode(value = "incidencias", subgraph = "TipoIncidenciaIncidencia")),
+		@NamedSubgraph(name = "TipoIncidenciaIncidencia", attributeNodes = @NamedAttributeNode("tipoincidencia"))
+}
+)
 @Table(name = "Vehiculo")
 public class Vehiculo implements Serializable{
 	
