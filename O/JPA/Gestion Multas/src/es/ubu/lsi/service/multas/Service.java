@@ -4,7 +4,6 @@ import java.util.Date;
 import java.util.List;
 
 import es.ubu.lsi.model.multas.Vehiculo;
-import es.ubu.lsi.model.multas.TipoIncidencia;
 import es.ubu.lsi.service.PersistenceException;
 
 /**
